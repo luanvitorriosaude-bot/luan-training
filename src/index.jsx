@@ -27,6 +27,16 @@ const signOut = async () => {
   window.location.reload();
 };
 
+// --- MOCK AUXILIAR DO FIRESTORE ---
+const doc = (dbRef, path, ...subPath) => ({ path: [path, ...subPath].join('/') });
+const collection = (dbRef, path) => ({ path });
+const getDoc = async () => ({ exists: () => false, data: () => ({}) });
+const setDoc = async () => ({});
+const addDoc = async () => ({ id: 'local-id' });
+const getDocs = async () => ({ docs: [] });
+const deleteDoc = async () => ({});
+const onSnapshot = (ref, callback) => { callback({ exists: () => false, data: () => ({}) }); return () => {}; };
+
 // --- DEFAULT DATA ---
 const THEME_COLORS = {
   lime: { bg: 'bg-lime-500', text: 'text-lime-400', border: 'border-lime-500', hex: '#a3e635' },
