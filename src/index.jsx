@@ -24,11 +24,11 @@ export function App() {
   const [activeSession, setActiveSession] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
 
-  // Inputs da IA aprimorados
+  // Inputs da IA aprimorados (Sexo começa vazio para obrigar o preenchimento)
   const [age, setAge] = useState('25');
   const [weight, setWeight] = useState('70');
   const [height, setHeight] = useState('170');
-  const [gender, setGender] = useState('Feminino');
+  const [gender, setGender] = useState('');
   const [daysPerWeek, setDaysPerWeek] = useState('5');
   const [goal, setGoal] = useState('Hipertrofia (Ganho de Massa)');
 
@@ -39,7 +39,10 @@ export function App() {
 
   // --- INTEGRAÇÃO REAL COM GOOGLE GEMINI ---
   const handleGenerateAIWorkout = async () => {
-    if (!age || !weight || !height) return alert("Preenche idade, peso e altura!");
+    // Validação que exige todos os campos preenchidos
+    if (!age || !weight || !height || !gender) {
+      return alert("Preencha idade, peso, altura e sexo!");
+    }
     setLoadingAI(true);
     
     try {
@@ -191,8 +194,9 @@ export function App() {
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold uppercase">Sexo</label>
                   <select value={gender} onChange={e => setGender(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-sm text-white outline-none">
-                    <option>Masculino</option>
-                    <option>Feminino</option>
+                    <option value="">Selecione...</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Feminino">Feminino</option>
                   </select>
                 </div>
                 <div>
@@ -291,4 +295,26 @@ export function App() {
       )}
 
       <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/95 backdrop-blur border-t border-slate-800 p-2.5 flex justify-around items-center z-20">
-        <button onClick={() => setActiveTab
+        <button onClick={() => setActiveTab('treinos')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'treinos' ? 'text-lime-400' : 'text-slate-500'}`}>
+          <Dumbbell className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Treinos</span>
+        </button>
+        <button onClick={() => setActiveTab('ia')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'ia' ? 'text-lime-400' : 'text-slate-500'}`}>
+          <Wand2 className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Gemini IA</span>
+        </button>
+        <button onClick={() => setActiveTab('historico')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'historico' ? 'text-lime-400' : 'text-slate-500'}`}>
+          <History className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Histórico</span>
+        </button>
+        <button onClick={() => setActiveTab('progresso')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'progresso' ? 'text-lime-400' : 'text-slate-500'}`}>
+          <TrendingUp className="w-5 h-5" />
+          <span className="text-[10px] font-bold">PRs</span>
+        </button>
+      </nav>
+    </div>
+  );
+}
+
+const root = createRoot(document.getElementById('root'));
+root.render(<App />);
