@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Play, History, TrendingUp, Dumbbell, Check, Clock, Share2, X, 
-  Flame, Award, Settings, User, LogOut, Calendar, Plus, Wand2, Archive, Loader2, Save
+  Flame, Award, Settings, User, LogOut, Calendar, Plus, Wand2, Archive, Loader2 
 } from 'lucide-react';
 
 // --- MODO OFFLINE LOCAL (LocalStorage) ---
 const auth = {
-  currentUser: JSON.parse(localStorage.getItem('luan_training_user')) || null
+  currentUser: JSON.parse(localStorage.getItem('luan_training_user')) || { uid: 'local-user', email: 'offline@luantraining.com' }
 };
 const db = null;
 const appId = 'local-offline-app';
@@ -21,19 +21,6 @@ const signInAnonymously = async () => {
   auth.currentUser = mockUser;
   return { user: mockUser };
 };
-const signOut = async () => {
-  localStorage.removeItem('luan_training_user');
-  auth.currentUser = null;
-  window.location.reload();
-};
-
-
-// Mock de funções do Firebase para manter o app funcionando perfeitamente sem erros
-const onAuthStateChanged = (authObj, callback) => {
-  callback(auth.currentUser);
-  return () => {};
-};
-const signInAnonymously = async () => ({ user: { uid: 'local-user', email: 'offline@luantraining.com' } });
 const signOut = async () => {
   localStorage.removeItem('luan_training_user');
   auth.currentUser = null;
@@ -81,27 +68,30 @@ export default function LuanTrainingApp() {
   const [summaryData, setSummaryData] = useState(null);
   const [activeTab, setActiveTab] = useState('treinos');
 
-  // 1. Initial Auth Flow
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (e) {
-        console.error("Auth init error", e);
+// 1. Initial Auth Flow (Modo Offline Local)
+useEffect(() => {
+  const initAuth = async () => {
+    try {
+      if (!auth.currentUser) {
+        await signInAnonymously();
       }
-    };
-    initAuth();
-
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+      setUser(auth.currentUser);
       setAuthLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+    } catch (e) {
+      console.error("Auth init error", e);
+      setAuthLoading(false);
+    }
+  };
+  initAuth();
+
+  const unsubscribe = onAuthStateChanged(auth, (u) => {
+    setUser(u);
+    setAuthLoading(false);
+  });
+  return () => {
+    if (typeof unsubscribe === 'function') unsubscribe();
+  };
+}, []);
 
   // 2. Data Fetching & Syncing
   useEffect(() => {
