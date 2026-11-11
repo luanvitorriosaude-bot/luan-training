@@ -24,10 +24,11 @@ export function App() {
   const [activeSession, setActiveSession] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
 
-  // Inputs da IA
+  // Inputs da IA aprimorados
   const [age, setAge] = useState('25');
   const [weight, setWeight] = useState('70');
-  const [gender, setGender] = useState('Masculino');
+  const [height, setHeight] = useState('170');
+  const [gender, setGender] = useState('Feminino');
   const [daysPerWeek, setDaysPerWeek] = useState('5');
   const [goal, setGoal] = useState('Hipertrofia (Ganho de Massa)');
 
@@ -38,17 +39,30 @@ export function App() {
 
   // --- INTEGRAÇÃO REAL COM GOOGLE GEMINI ---
   const handleGenerateAIWorkout = async () => {
-    if (!age || !weight) return alert("Preencha idade e peso!");
+    if (!age || !weight || !height) return alert("Preencha idade, peso e altura!");
     setLoadingAI(true);
     
     try {
-      // CHAVE DE API APLICADA:
-      const GEMINI_API_KEY = 'AQ.Ab8RN6KqNfc5cn26AV7jVPPRz4l8_0dMutBkfJtOPP0Chtk6eQ'; 
+      const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY; 
 
-      const prompt = `Atue como um personal trainer de elite. Crie um treino de musculação diário para uma pessoa de ${age} anos, pesando ${weight}kg, sexo ${gender}, que treina ${daysPerWeek} dias por semana, com foco em ${goal}. 
+      // Regra de ouro para treino feminino
+      const femaleFocus = gender === 'Feminino' 
+        ? "ATENÇÃO: Como o usuário é do sexo FEMININO, direcione de 80% a 90% do volume total do treino para membros INFERIORES (glúteos, quadríceps, posteriores, panturrilha). Superiores devem ser apenas manutenção leve."
+        : "Distribua os grupos musculares de forma equilibrada ou conforme a melhor ciência para o objetivo escolhido (foco masculino/padrão).";
+
+      const prompt = `Atue como um personal trainer de elite. Crie um treino de musculação diário com os seguintes dados do aluno:
+      - Idade: ${age} anos
+      - Peso: ${weight} kg
+      - Altura: ${height} cm
+      - Sexo: ${gender}
+      - Frequência: ${daysPerWeek} dias por semana
+      - Objetivo Principal: ${goal}
+
+      ${femaleFocus}
+      
       Retorne APENAS um objeto JSON válido (sem marcação de código ou texto extra) exatamente neste formato:
       {
-        "name": "Nome do Treino (ex: Treino Full Body)",
+        "name": "Nome do Treino (ex: Treino Inferiores Foco Glúteo)",
         "exercises": [
           { "name": "Nome do Exercicio", "sets": 4, "reps": "10-12" }
         ]
@@ -62,11 +76,17 @@ export function App() {
 
       const data = await response.json();
       
-      if (data.error) throw new Error(data.error.message);
+      if (!response.ok) {
+        throw new Error(data.error?.message || "Erro desconhecido na API");
+      }
 
       let textOutput = data.candidates[0].content.parts[0].text;
-      textOutput = textOutput.replace(/```json/g, '').replace(/```/g, '').trim(); // Limpa formatação markdown
-      const aiRoutine = JSON.parse(textOutput);
+      textOutput = textOutput.replace(/```json/g, '').replace(/```/g, '').trim(); 
+      const startIndex = textOutput.indexOf('{');
+      const endIndex = textOutput.lastIndexOf('}');
+      const cleanJson = textOutput.substring(startIndex, endIndex + 1);
+
+      const aiRoutine = JSON.parse(cleanJson);
 
       const newRoutine = {
         id: Date.now().toString(),
@@ -78,7 +98,7 @@ export function App() {
       setActiveTab('treinos');
       alert('Treino gerado pelo Gemini com sucesso!');
     } catch (error) {
-      console.error("Erro no Gemini:", error);
+      console.error("Detalhes do Erro:", error);
       alert("Erro ao conectar com a IA. Verifique sua chave de API ou conexão de internet.");
     } finally {
       setLoadingAI(false);
@@ -88,7 +108,6 @@ export function App() {
   return (
     <div className="max-w-md mx-auto min-h-screen bg-slate-950 text-slate-100 flex flex-col shadow-2xl relative pb-24 font-sans">
       
-      {/* Header */}
       <header className="px-4 py-3 bg-slate-900/90 backdrop-blur sticky top-0 z-20 border-b border-slate-800 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="bg-lime-400/10 p-2 rounded-xl border border-lime-400/20">
@@ -99,10 +118,8 @@ export function App() {
         <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded-full font-semibold border border-slate-700">Gemini IA</span>
       </header>
 
-      {/* Conteúdo Principal */}
       <main className="flex-1 p-4 overflow-y-auto">
         
-        {/* ABA: TREINOS */}
         {activeTab === 'treinos' && (
           <div className="space-y-4 animate-fadeIn">
             <div className="flex justify-between items-center">
@@ -142,7 +159,6 @@ export function App() {
           </div>
         )}
 
-        {/* ABA: GERADOR DE IA */}
         {activeTab === 'ia' && (
           <div className="space-y-4 animate-fadeIn">
             <div className="flex items-center gap-2 mb-1">
@@ -156,16 +172,35 @@ export function App() {
             </div>
 
             <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold uppercase">Idade</label>
-                  <input type="number" value={age} onChange={e => setAge(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white outline-none" />
+                  <input type="number" value={age} onChange={e => setAge(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-sm text-white outline-none" />
                 </div>
                 <div>
                   <label className="text-[10px] text-slate-400 font-bold uppercase">Peso (kg)</label>
-                  <input type="number" value={weight} onChange={e => setWeight(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white outline-none" />
+                  <input type="number" value={weight} onChange={e => setWeight(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-sm text-white outline-none" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">Altura (cm)</label>
+                  <input type="number" value={height} onChange={e => setHeight(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-sm text-white outline-none" />
                 </div>
               </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">Sexo</label>
+                  <select value={gender} onChange={e => setGender(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-sm text-white outline-none">
+                    <option>Masculino</option>
+                    <option>Feminino</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">Dias/Semana</label>
+                  <input type="number" value={daysPerWeek} onChange={e => setDaysPerWeek(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-sm text-white outline-none" />
+                </div>
+              </div>
+
               <div>
                 <label className="text-[10px] text-slate-400 font-bold uppercase">Objetivo Principal</label>
                 <select value={goal} onChange={e => setGoal(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white outline-none">
@@ -174,6 +209,7 @@ export function App() {
                   <option>Força Pura</option>
                 </select>
               </div>
+              
               <button 
                 onClick={handleGenerateAIWorkout} disabled={loadingAI}
                 className="w-full mt-3 bg-lime-400 hover:bg-lime-500 text-slate-950 font-black py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg text-sm"
@@ -185,7 +221,6 @@ export function App() {
           </div>
         )}
 
-        {/* ABA: HISTÓRICO */}
         {activeTab === 'historico' && (
           <div className="space-y-4 animate-fadeIn">
             <h2 className="text-xl font-black text-white flex items-center gap-2">
@@ -206,7 +241,6 @@ export function App() {
           </div>
         )}
 
-        {/* ABA: PROGRESSO / PRs */}
         {activeTab === 'progresso' && (
           <div className="space-y-4 animate-fadeIn">
             <h2 className="text-xl font-black text-white flex items-center gap-2">
@@ -224,7 +258,6 @@ export function App() {
         )}
       </main>
 
-      {/* SESSÃO ATIVA (MODAL) */}
       {activeSession && (
         <div className="fixed inset-0 bg-slate-950 z-50 flex flex-col p-4">
           <div className="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -240,45 +273,4 @@ export function App() {
             {activeSession.exercises.map((ex, idx) => (
               <div key={idx} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
                 <span className="font-bold text-white text-sm">{ex.name}</span>
-                <span className="text-xs bg-lime-400/10 text-lime-400 px-2.5 py-1 rounded-lg font-medium">{ex.sets} séries × {ex.reps}</span>
-              </div>
-            ))}
-          </div>
-          <button 
-            onClick={() => {
-              setHistory([{ name: activeSession.name, date: new Date().toLocaleDateString() }, ...history]);
-              setActiveSession(null);
-              setActiveTab('historico');
-            }} 
-            className="w-full bg-lime-400 text-slate-950 font-black py-3.5 rounded-xl flex items-center justify-center gap-2"
-          >
-            <Check className="w-5 h-5 stroke-[3]" /> CONCLUIR TREINO
-          </button>
-        </div>
-      )}
-
-      {/* Navegação */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/95 backdrop-blur border-t border-slate-800 p-2.5 flex justify-around items-center z-20">
-        <button onClick={() => setActiveTab('treinos')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'treinos' ? 'text-lime-400' : 'text-slate-500'}`}>
-          <Dumbbell className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Treinos</span>
-        </button>
-        <button onClick={() => setActiveTab('ia')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'ia' ? 'text-lime-400' : 'text-slate-500'}`}>
-          <Wand2 className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Gemini IA</span>
-        </button>
-        <button onClick={() => setActiveTab('historico')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'historico' ? 'text-lime-400' : 'text-slate-500'}`}>
-          <History className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Histórico</span>
-        </button>
-        <button onClick={() => setActiveTab('progresso')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'progresso' ? 'text-lime-400' : 'text-slate-500'}`}>
-          <TrendingUp className="w-5 h-5" />
-          <span className="text-[10px] font-bold">PRs</span>
-        </button>
-      </nav>
-    </div>
-  );
-}
-
-const root = createRoot(document.getElementById('root'));
-root.render(<App />);
+                <span className="text-xs bg-lime-400/10 text-lime-400 px
