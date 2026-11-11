@@ -4,23 +4,29 @@ import {
   Flame, Award, Settings, User, LogOut, Calendar, Plus, Wand2, Archive, Loader2, Save
 } from 'lucide-react';
 
-// --- FIREBASE IMPORTS ---
-import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, 
-  signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut 
-} from 'firebase/auth';
-import { 
-  getFirestore, doc, setDoc, getDoc, collection, onSnapshot, 
-  addDoc, deleteDoc, getDocs 
-} from 'firebase/firestore';
-
 // --- MODO OFFLINE LOCAL (LocalStorage) ---
 const auth = {
   currentUser: JSON.parse(localStorage.getItem('luan_training_user')) || null
 };
 const db = null;
 const appId = 'local-offline-app';
+
+const onAuthStateChanged = (authObj, callback) => {
+  callback(auth.currentUser);
+  return () => {};
+};
+const signInAnonymously = async () => {
+  const mockUser = { uid: 'local-user', email: 'offline@luantraining.com' };
+  localStorage.setItem('luan_training_user', JSON.stringify(mockUser));
+  auth.currentUser = mockUser;
+  return { user: mockUser };
+};
+const signOut = async () => {
+  localStorage.removeItem('luan_training_user');
+  auth.currentUser = null;
+  window.location.reload();
+};
+
 
 // Mock de funções do Firebase para manter o app funcionando perfeitamente sem erros
 const onAuthStateChanged = (authObj, callback) => {
