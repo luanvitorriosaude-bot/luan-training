@@ -39,7 +39,7 @@ export function App() {
 
   // --- INTEGRAÇÃO REAL COM GOOGLE GEMINI ---
   const handleGenerateAIWorkout = async () => {
-    if (!age || !weight || !height) return alert("Preencha idade, peso e altura!");
+    if (!age || !weight || !height) return alert("Preenche idade, peso e altura!");
     setLoadingAI(true);
     
     try {
@@ -99,7 +99,7 @@ export function App() {
       alert('Treino gerado pelo Gemini com sucesso!');
     } catch (error) {
       console.error("Detalhes do Erro:", error);
-      alert("Erro ao conectar com a IA. Verifique sua chave de API ou conexão de internet.");
+      alert("Erro ao conectar com a IA. Verifica a tua chave de API ou conexão de internet.");
     } finally {
       setLoadingAI(false);
     }
@@ -125,7 +125,7 @@ export function App() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-black text-white">Meus Treinos</h2>
-                <p className="text-xs text-slate-400">Escolha sua rotina para iniciar a sessão</p>
+                <p className="text-xs text-slate-400">Escolha a sua rotina para iniciar a sessão</p>
               </div>
               <button onClick={() => setActiveTab('ia')} className="bg-lime-400 hover:bg-lime-500 text-slate-950 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-lg shadow-lime-400/10">
                 <Wand2 className="w-4 h-4" /> Nova IA
@@ -215,7 +215,7 @@ export function App() {
                 className="w-full mt-3 bg-lime-400 hover:bg-lime-500 text-slate-950 font-black py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg text-sm"
               >
                 {loadingAI ? <Loader2 className="animate-spin w-5 h-5" /> : <Wand2 className="w-5 h-5" />}
-                {loadingAI ? 'PENSANDO...' : 'GERAR MEU TREINO'}
+                {loadingAI ? 'A PENSAR...' : 'GERAR MEU TREINO'}
               </button>
             </div>
           </div>
@@ -273,4 +273,22 @@ export function App() {
             {activeSession.exercises.map((ex, idx) => (
               <div key={idx} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
                 <span className="font-bold text-white text-sm">{ex.name}</span>
-                <span className="text-xs bg-lime-400/10 text-lime-400 px
+                <span className="text-xs bg-lime-400/10 text-lime-400 px-2.5 py-1 rounded-lg font-medium">{ex.sets} séries × {ex.reps}</span>
+              </div>
+            ))}
+          </div>
+          <button 
+            onClick={() => {
+              setHistory([{ name: activeSession.name, date: new Date().toLocaleDateString() }, ...history]);
+              setActiveSession(null);
+              setActiveTab('historico');
+            }} 
+            className="w-full bg-lime-400 text-slate-950 font-black py-3.5 rounded-xl flex items-center justify-center gap-2"
+          >
+            <Check className="w-5 h-5 stroke-[3]" /> CONCLUIR TREINO
+          </button>
+        </div>
+      )}
+
+      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-slate-950/95 backdrop-blur border-t border-slate-800 p-2.5 flex justify-around items-center z-20">
+        <button onClick={() => setActiveTab
