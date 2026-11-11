@@ -15,12 +15,24 @@ import {
   addDoc, deleteDoc, getDocs 
 } from 'firebase/firestore';
 
-// --- FIREBASE SETUP ---
-const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+// --- MODO OFFLINE LOCAL (LocalStorage) ---
+const auth = {
+  currentUser: JSON.parse(localStorage.getItem('luan_training_user')) || null
+};
+const db = null;
+const appId = 'local-offline-app';
+
+// Mock de funções do Firebase para manter o app funcionando perfeitamente sem erros
+const onAuthStateChanged = (authObj, callback) => {
+  callback(auth.currentUser);
+  return () => {};
+};
+const signInAnonymously = async () => ({ user: { uid: 'local-user', email: 'offline@luantraining.com' } });
+const signOut = async () => {
+  localStorage.removeItem('luan_training_user');
+  auth.currentUser = null;
+  window.location.reload();
+};
 
 // --- DEFAULT DATA ---
 const THEME_COLORS = {
