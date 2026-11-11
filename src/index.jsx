@@ -27,15 +27,18 @@ const signOut = async () => {
   window.location.reload();
 };
 
-// --- MOCK AUXILIAR DO FIRESTORE ---
+// --- MOCK BLINDADO DO FIRESTORE (Evita erros de forEach) ---
 const doc = (dbRef, path, ...subPath) => ({ path: [path, ...subPath].join('/') });
 const collection = (dbRef, path) => ({ path });
 const getDoc = async () => ({ exists: () => false, data: () => ({}) });
 const setDoc = async () => ({});
 const addDoc = async () => ({ id: 'local-id' });
-const getDocs = async () => ({ docs: [] });
+const getDocs = async () => ({ docs: [], forEach: (cb) => {} });
 const deleteDoc = async () => ({});
-const onSnapshot = (ref, callback) => { callback({ exists: () => false, data: () => ({}) }); return () => {}; };
+const onSnapshot = (ref, callback) => { 
+  callback({ exists: () => false, data: () => ({}), forEach: (cb) => {} }); 
+  return () => {}; 
+};
 
 // --- DEFAULT DATA ---
 const THEME_COLORS = {
