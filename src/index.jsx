@@ -1,42 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
-  Play, History, TrendingUp, Dumbbell, Check, Clock, Wand2, X, Loader2, Plus, Trash2, Edit3, Calendar as CalendarIcon, RotateCcw, Flame
+  Play, History, TrendingUp, Dumbbell, Check, Clock, Wand2, X, Loader2, Plus, Trash2, Edit3, Calendar as CalendarIcon, Flame, Search, Compass, BookmarkCheck
 } from 'lucide-react';
 
-const WORKOUT_DATABASE = {
-  Feminino: {
-    Hipertrofia: [
-      { name: "Inferiores A1: Foco Quadríceps & Glúteo", exercises: [{ name: "Agachamento Livre com Barra", sets: 4, reps: "8-10" }, { name: "Leg Press 45º (Pés Baixos)", sets: 4, reps: "10-12" }, { name: "Cadeira Extensora", sets: 3, reps: "12-15" }, { name: "Afundo com Halteres", sets: 3, reps: "10 por perna" }, { name: "Panturrilhas em Pé", sets: 4, reps: "20" }] },
-      { name: "Inferiores B1: Foco Posterior & Glúteo Máximo", exercises: [{ name: "Elevação Pélvica com Barra", sets: 4, reps: "10-12" }, { name: "Stiff com Halteres", sets: 4, reps: "10-12" }, { name: "Mesa Flexora", sets: 3, reps: "12" }, { name: "Glúteo Coice na Polia", sets: 4, reps: "15" }, { name: "Cadeira Abdutora", sets: 4, reps: "15" }] },
-      { name: "Inferiores C1: Unilateral & Búlgaro", exercises: [{ name: "Agachamento Búlgaro", sets: 4, reps: "10 por perna" }, { name: "Levantamento Terra Romeno", sets: 4, reps: "10" }, { name: "Leg Press Unilateral", sets: 3, reps: "12" }, { name: "Cadeira Extensora (Drop-set)", sets: 3, reps: "10" }, { name: "Elevação Pélvica Unilateral", sets: 3, reps: "12" }] },
-      { name: "Inferiores D1: Volume Extremo de Glúteos", exercises: [{ name: "Sumô com Barra ou Halter", sets: 4, reps: "10-12" }, { name: "Elevação Pélvica (Pausa 2s no topo)", sets: 4, reps: "10" }, { name: "Cadeira Abdutora (Tronco Inclinado)", sets: 4, reps: "15" }, { name: "Extensão de Quadril no Solo", sets: 3, reps: "20" }, { name: "Panturrilhas Sentado", sets: 4, reps: "15" }] },
-      { name: "Superiores A: Costas e Ombros", exercises: [{ name: "Puxada Alta na Polia", sets: 3, reps: "12" }, { name: "Remada Baixa", sets: 3, reps: "12" }, { name: "Desenvolvimento com Halteres", sets: 3, reps: "12" }, { name: "Elevação Lateral", sets: 3, reps: "15" }] }
-    ],
-    "Emagrecimento / Definição": [
-      { name: "Full Body Definição A (HIIT Pernas)", exercises: [{ name: "Agachamento com Salto", sets: 4, reps: "15" }, { name: "Stiff com Halteres Leves", sets: 4, reps: "15" }, { name: "Afundo Dinâmico", sets: 3, reps: "12 por perna" }, { name: "Polichinelo", sets: 3, reps: "1 min" }] },
-      { name: "Full Body Definição B (Resistência Glúteo)", exercises: [{ name: "Elevação Pélvica Rápida", sets: 4, reps: "20" }, { name: "Cadeira Extensora", sets: 3, reps: "15" }, { name: "Cadeira Flexora", sets: 3, reps: "15" }, { name: "Bicicleta no Solo", sets: 3, reps: "25" }] }
-    ],
-    "Força Pura": [
-      { name: "Power Inferiores Pesado A", exercises: [{ name: "Agachamento Livre com Carga", sets: 5, reps: "5" }, { name: "Elevação Pélvica Pesada", sets: 5, reps: "6" }, { name: "Leg Press Pesado", sets: 4, reps: "6-8" }] }
+// --- BIBLIOTECA COMPLETA COM OS MODELOS DAS IMAGENS ---
+const SAVED_WORKOUT_TEMPLATES = [
+  {
+    id: 'template-completo-1',
+    name: 'Treino A & C - Membros Inferiores (Quadríceps, Posteriores e Glúteos)',
+    category: 'Inferiores 🍑',
+    exercises: [
+      { name: 'Agachamento (barra)', sets: 3, reps: '8 reps' },
+      { name: 'Leg Press Inclinado', sets: 3, reps: '12 reps' },
+      { name: 'Extensão de Pernas (máquina)', sets: 3, reps: '3 séries' },
+      { name: 'Levantamento Terra (barra)', sets: 3, reps: '3 séries' },
+      { name: 'Elevação de Quadril (máquina)', sets: 3, reps: '3 séries' },
+      { name: 'Cadeira Adutora', sets: 3, reps: '3 séries' },
+      { name: 'Levantamento Terra Sumô (barra)', sets: 3, reps: '10 reps' },
+      { name: 'Cadeira Abdutora', sets: 4, reps: '6-12 reps' },
+      { name: 'Extensão de Quadril no Solo', sets: 3, reps: '8 reps' }
     ]
   },
-  Masculino: {
-    Hipertrofia: [
-      { name: "Treino A1: Peito, Tríceps e Ombro", exercises: [{ name: "Supino Reto com Barra", sets: 4, reps: "8-10" }, { name: "Supino Inclinado com Halteres", sets: 4, reps: "10" }, { name: "Crucifixo na Polia", sets: 3, reps: "12" }, { name: "Desenvolvimento Militar", sets: 3, reps: "10" }, { name: "Tríceps Corda", sets: 3, reps: "15" }] },
-      { name: "Treino B1: Costas, Bíceps e Antebraço", exercises: [{ name: "Puxada Alta Frontal", sets: 4, reps: "10" }, { name: "Remada Curvada com Barra", sets: 4, reps: "8-10" }, { name: "Remada Baixa na Polia", sets: 3, reps: "12" }, { name: "Rosca Direta com Barra", sets: 3, reps: "10" }, { name: "Rosca Martelo", sets: 3, reps: "12" }] },
-      { name: "Treino C1: Membros Inferiores Completo", exercises: [{ name: "Agachamento Livre", sets: 4, reps: "8-10" }, { name: "Leg Press 45º", sets: 4, reps: "10" }, { name: "Cadeira Extensora", sets: 3, reps: "12" }, { name: "Mesa Flexora", sets: 3, reps: "12" }, { name: "Panturrilhas em Pé", sets: 4, reps: "15" }] },
-      { name: "Treino D1: Ombros, Trapézio e Abdômen", exercises: [{ name: "Desenvolvimento com Halteres", sets: 4, reps: "10" }, { name: "Elevação Lateral com Halteres", sets: 4, reps: "12-15" }, { name: "Abdominal Infra na Paralela", sets: 3, reps: "15" }] }
-    ],
-    "Emagrecimento / Definição": [
-      { name: "Upper Body Definição A", exercises: [{ name: "Supino Reto com Halteres", sets: 4, reps: "12" }, { name: "Remada Baixa", sets: 4, reps: "12" }, { name: "Burpees", sets: 3, reps: "10" }] },
-      { name: "Lower Body Definição B", exercises: [{ name: "Leg Press 45º", sets: 4, reps: "15" }, { name: "Cadeira Flexora", sets: 4, reps: "15" }, { name: "Prancha Abdominal", sets: 3, reps: "50 seg" }] }
-    ],
-    "Força Pura": [
-      { name: "Powerbuilding A (Força Máxima)", exercises: [{ name: "Supino Reto Pesado", sets: 5, reps: "3-5" }, { name: "Agachamento Livre Pesado", sets: 5, reps: "3-5" }, { name: "Levantamento Terra", sets: 3, reps: "3" }] }
+  {
+    id: 'template-superior-peito',
+    name: 'Treino A - Peito e Ombros',
+    category: 'Superiores - Peito ⚡',
+    exercises: [
+      { name: 'Crucifixo Inclinado (máquina)', sets: 3, reps: '3 séries' },
+      { name: 'Supino Reto (máquina)', sets: 3, reps: '3 séries' },
+      { name: 'Supino Inclinado (máquina)', sets: 3, reps: '3 séries' },
+      { name: 'Supino Declinado (barra)', sets: 3, reps: '3 séries' },
+      { name: 'Flexão de Braços', sets: 3, reps: '3 séries' },
+      { name: 'Desenvolvimento de Ombros Sentado (halteres)', sets: 3, reps: '3 séries' },
+      { name: 'Elevação Lateral (halteres)', sets: 3, reps: '3 séries' }
+    ]
+  },
+  {
+    id: 'template-superior-costas',
+    name: 'Treino B - Costas e Bíceps',
+    category: 'Superiores - Costas ⚡',
+    exercises: [
+      { name: 'Puxada - com triângulo (polia alta)', sets: 3, reps: '3 séries' },
+      { name: 'Remada (máquina)', sets: 3, reps: '3 séries' },
+      { name: 'Puxada Estendida (polia)', sets: 3, reps: '3 séries' },
+      { name: 'Puxada - pegada aberta neutra (polia)', sets: 3, reps: '3 séries' },
+      { name: 'Puxada com Pegada Fechada (barra fixa)', sets: 3, reps: '3 séries' },
+      { name: 'Remada (barra)', sets: 3, reps: '3 séries' },
+      { name: 'Rosca Alternada (halteres)', sets: 3, reps: '3 séries' },
+      { name: 'Rosca Martelo (halteres)', sets: 3, reps: '3 séries' },
+      { name: 'Rosca Direta (barra W)', sets: 3, reps: '3 séries' }
+    ]
+  },
+  {
+    id: 'template-superior-ombros-triceps',
+    name: 'Treino D - Ombros, Tríceps e Peito',
+    category: 'Superiores - Ombros & Tríceps ⚡',
+    exercises: [
+      { name: 'Desenvolvimento de Ombros Sentado (máquina)', sets: 3, reps: '3 séries' },
+      { name: 'Rotação de Ombros Externa (polia)', sets: 3, reps: '3 séries' },
+      { name: 'Remada Alta (halteres)', sets: 3, reps: '3 séries' },
+      { name: 'Desenvolvimento de Ombros Arnold (halteres)', sets: 3, reps: '3 séries' },
+      { name: 'Elevação Lateral Unilateral (polia)', sets: 3, reps: '3 séries' },
+      { name: 'Supino Inclinado (halteres)', sets: 3, reps: '3 séries' },
+      { name: 'Crossover (polia)', sets: 3, reps: '3 séries' },
+      { name: 'Tríceps Coice Unilateral (halteres)', sets: 3, reps: '3 séries' },
+      { name: 'Extensão de Tríceps (polia)', sets: 3, reps: '3 séries' }
     ]
   }
-};
+];
 
 export function App() {
   const [activeTab, setActiveTab] = useState('treinos');
@@ -46,8 +78,8 @@ export function App() {
     if (saved) return JSON.parse(saved);
     return [{
       id: '1',
-      name: 'Treino Inicial',
-      exercises: [{ name: 'Agachamento Livre', sets: 4, reps: '10-12' }]
+      name: SAVED_WORKOUT_TEMPLATES[0].name,
+      exercises: [...SAVED_WORKOUT_TEMPLATES[0].exercises]
     }];
   });
 
@@ -61,36 +93,20 @@ export function App() {
     return saved ? JSON.parse(saved) : { 'Supino Reto': '80kg', 'Agachamento': '100kg' };
   });
 
-  // Estados do Motor Inteligente
-  const [age, setAge] = useState('25');
-  const [weight, setWeight] = useState('70');
-  const [height, setHeight] = useState('170');
-  const [gender, setGender] = useState('Feminino');
-  const [daysPerWeek, setDaysPerWeek] = useState('4');
-  const [goal, setGoal] = useState('Hipertrofia (Ganho de Massa)');
-  const [generating, setGenerating] = useState(false);
-
-  // Estados de Edição e Sessão Ativa
   const [editingRoutine, setEditingRoutine] = useState(null);
-  const [newExName, setNewExName] = useState('');
-  const [newExSets, setNewExSets] = useState(4);
-  const [newExReps, setNewExReps] = useState('10-12');
-
   const [activeSession, setActiveSession] = useState(null);
   const [sessionTime, setSessionTime] = useState(0);
-  const [completedSets, setCompletedSets] = useState({}); // { "exIdx-setIdx": true }
-  const [setWeights, setSetWeights] = useState({});       // { "exIdx-setIdx": "75kg" }
+  const [completedSets, setCompletedSets] = useState({});
+  const [setWeights, setSetWeights] = useState({});
 
-  // Timers de Descanso
   const [restTimeLeft, setRestTimeLeft] = useState(null);
   const [isResting, setIsResting] = useState(false);
-  const [defaultRestSeconds, setDefaultRestSeconds] = useState(60);
+  const defaultRestSeconds = 60;
 
   useEffect(() => localStorage.setItem('luan_training_routines', JSON.stringify(routines)), [routines]);
   useEffect(() => localStorage.setItem('luan_training_history', JSON.stringify(history)), [history]);
   useEffect(() => localStorage.setItem('luan_training_prs', JSON.stringify(prs)), [prs]);
 
-  // Cronômetro total do treino
   useEffect(() => {
     let timer;
     if (activeSession) {
@@ -101,7 +117,6 @@ export function App() {
     return () => clearInterval(timer);
   }, [activeSession]);
 
-  // Contagem decrescente do descanso
   useEffect(() => {
     let restTimer;
     if (isResting && restTimeLeft > 0) {
@@ -119,44 +134,15 @@ export function App() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSmartGenerateWorkout = () => {
-    if (!age || !weight || !height || !gender) return alert("Preencha todos os campos do perfil!");
-    setGenerating(true);
-
-    setTimeout(() => {
-      let targetGoal = "Hipertrofia";
-      if (goal.includes("Emagrecimento")) targetGoal = "Emagrecimento / Definição";
-      if (goal.includes("Força")) targetGoal = "Força Pura";
-
-      const categoryPool = WORKOUT_DATABASE[gender]?.[targetGoal] || WORKOUT_DATABASE["Masculino"]["Hipertrofia"];
-      const qtyToSelect = Math.min(parseInt(daysPerWeek) || 3, categoryPool.length);
-      
-      const generatedRoutines = [];
-      for (let i = 0; i < qtyToSelect; i++) {
-        const baseRoutine = categoryPool[i % categoryPool.length];
-        generatedRoutines.push({
-          id: `${Date.now()}-${i}`,
-          name: baseRoutine.name,
-          exercises: [...baseRoutine.exercises]
-        });
-      }
-
-      setRoutines([...generatedRoutines, ...routines]);
-      setActiveTab('treinos');
-      setGenerating(false);
-      alert(`Criador Pro gerou ${generatedRoutines.length} fichas com sucesso!`);
-    }, 400);
-  };
-
-  const handleAddExerciseToRoutine = (routineId) => {
-    if (!newExName) return alert("Digite o nome do exercício!");
-    setRoutines(routines.map(r => {
-      if (r.id === routineId) {
-        return { ...r, exercises: [...r.exercises, { name: newExName, sets: Number(newExSets), reps: newExReps }] };
-      }
-      return r;
-    }));
-    setNewExName('');
+  const handleAdoptTemplate = (template) => {
+    const newRoutine = {
+      id: `${Date.now()}`,
+      name: template.name,
+      exercises: template.exercises.map(ex => ({ ...ex }))
+    };
+    setRoutines([newRoutine, ...routines]);
+    setActiveTab('treinos');
+    alert(`O modelo "${template.name}" foi adicionado aos seus treinos ativos!`);
   };
 
   const handleRemoveExercise = (routineId, index) => {
@@ -176,7 +162,6 @@ export function App() {
     }
   };
 
-  // Cálculo de fadiga muscular com base no histórico e 48h/72h de recuperação
   const calculateMuscleFatigue = () => {
     const now = new Date().getTime();
     const muscleMap = {
@@ -187,7 +172,7 @@ export function App() {
     history.forEach(item => {
       const itemDate = new Date(item.rawDate || item.date).getTime();
       const routineName = (item.name || "").toLowerCase();
-      if (routineName.includes("inferiores") || routineName.includes("glúteo") || routineName.includes("pernas")) {
+      if (routineName.includes("inferiores") || routineName.includes("glúteo") || routineName.includes("pernas") || routineName.includes("quadríceps")) {
         if (!muscleMap["Inferiores"].lastTrained || itemDate > muscleMap["Inferiores"].lastTrained) {
           muscleMap["Inferiores"].lastTrained = itemDate;
         }
@@ -222,21 +207,20 @@ export function App() {
 
       <main className="flex-1 p-4 overflow-y-auto">
         
-        {/* ABA TREINOS */}
         {activeTab === 'treinos' && (
           <div className="space-y-4 animate-fadeIn">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-black text-white">Meus Treinos</h2>
-                <p className="text-xs text-slate-400">Escolha sua rotina para iniciar com timer</p>
+                <p className="text-xs text-slate-400">Rotinas ativas no seu plano</p>
               </div>
-              <button onClick={() => setActiveTab('gerador')} className="bg-lime-400 hover:bg-lime-500 text-slate-950 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-lg shadow-lime-400/10">
-                <Wand2 className="w-4 h-4" /> Criador Pro
+              <button onClick={() => setActiveTab('modelos')} className="bg-lime-400 hover:bg-lime-500 text-slate-950 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-lg shadow-lime-400/10">
+                <Compass className="w-4 h-4" /> Modelos Salvos
               </button>
             </div>
 
             {routines.length === 0 && (
-              <div className="text-center py-12 text-slate-500 text-sm">Nenhum treino salvo. Use o Criador Pro!</div>
+              <div className="text-center py-12 text-slate-500 text-sm">Nenhum treino ativo. Vá na aba "Modelos Salvos"!</div>
             )}
 
             <div className="space-y-3 mt-4">
@@ -265,7 +249,7 @@ export function App() {
                     {routine.exercises.map((ex, idx) => (
                       <div key={idx} className="flex justify-between items-center text-sm text-slate-300">
                         <span className="font-medium">• {ex.name}</span>
-                        <span className="text-xs text-slate-400 bg-slate-900 px-2 py-1 rounded-md border border-slate-800">{ex.sets}x{ex.reps}</span>
+                        <span className="text-xs text-slate-400 bg-slate-900 px-2 py-1 rounded-md border border-slate-800">{ex.sets}s × {ex.reps}</span>
                       </div>
                     ))}
                   </div>
@@ -275,77 +259,54 @@ export function App() {
           </div>
         )}
 
-        {/* ABA GERADOR */}
-        {activeTab === 'gerador' && (
+        {activeTab === 'modelos' && (
           <div className="space-y-4 animate-fadeIn">
             <div className="flex items-center gap-2 mb-1">
               <div className="bg-lime-400/10 p-2 rounded-xl border border-lime-400/20">
-                <Wand2 className="text-lime-400 w-5 h-5" />
+                <Compass className="text-lime-400 w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-white">Criador Profissional</h2>
-                <p className="text-xs text-slate-400">Gere fichas baseadas em modelos avançados</p>
+                <h2 className="text-xl font-black text-white">Modelos Salvos</h2>
+                <p className="text-xs text-slate-400">Biblioteca de fichas profissionais baseada nas suas imagens</p>
               </div>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-lg">
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase">Idade</label>
-                  <input type="number" value={age} onChange={e => setAge(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white outline-none" />
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase">Peso (kg)</label>
-                  <input type="number" value={weight} onChange={e => setWeight(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white outline-none" />
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase">Altura (cm)</label>
-                  <input type="number" value={height} onChange={e => setHeight(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white outline-none" />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase">Sexo</label>
-                  <select value={gender} onChange={e => setGender(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white outline-none">
-                    <option value="Feminino">Feminino (Foco Inferiores)</option>
-                    <option value="Masculino">Masculino (Padrão Equilibrado)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold uppercase">Dias/Semana</label>
-                  <input type="number" value={daysPerWeek} onChange={e => setDaysPerWeek(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white outline-none" />
-                </div>
-              </div>
+            <div className="space-y-4 mt-3">
+              {SAVED_WORKOUT_TEMPLATES.map(template => (
+                <div key={template.id} className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] bg-lime-400/10 text-lime-400 font-bold px-2 py-0.5 rounded border border-lime-400/20 uppercase">{template.category}</span>
+                      <h3 className="font-bold text-base text-white mt-1.5">{template.name}</h3>
+                    </div>
+                    <button 
+                      onClick={() => handleAdoptTemplate(template)}
+                      className="bg-lime-400 hover:bg-lime-500 text-slate-950 font-black px-3 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md transition"
+                    >
+                      <BookmarkCheck className="w-4 h-4" /> Usar como Treino Atual
+                    </button>
+                  </div>
 
-              <div>
-                <label className="text-[10px] text-slate-400 font-bold uppercase">Objetivo Principal</label>
-                <select value={goal} onChange={e => setGoal(e.target.value)} className="w-full mt-1 bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white outline-none">
-                  <option>Hipertrofia (Ganho de Massa)</option>
-                  <option>Emagrecimento / Definição</option>
-                  <option>Força Pura</option>
-                </select>
-              </div>
-              
-              <button 
-                onClick={handleSmartGenerateWorkout} disabled={generating}
-                className="w-full mt-3 bg-lime-400 hover:bg-lime-500 text-slate-950 font-black py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg text-sm"
-              >
-                {generating ? <Loader2 className="animate-spin w-5 h-5" /> : <Wand2 className="w-5 h-5" />}
-                {generating ? 'GERANDO...' : 'GERAR MEU TREINO PRO'}
-              </button>
+                  <div className="bg-slate-950/60 rounded-xl p-3 border border-slate-800/60 space-y-1.5 max-h-60 overflow-y-auto">
+                    {template.exercises.map((ex, idx) => (
+                      <div key={idx} className="flex justify-between items-center text-xs text-slate-300">
+                        <span>• {ex.name}</span>
+                        <span className="text-slate-400 bg-slate-900 px-2 py-0.5 rounded">{ex.sets}s × {ex.reps}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* ABA HISTÓRICO COM CALENDÁRIO E FADIGA */}
         {activeTab === 'historico' && (
           <div className="space-y-4 animate-fadeIn">
             <h2 className="text-xl font-black text-white flex items-center gap-2">
               <CalendarIcon className="text-lime-400 w-5 h-5" /> Calendário & Fadiga Muscular
             </h2>
 
-            {/* Painel de Status de Fadiga */}
             <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
               <h3 className="text-xs font-bold text-lime-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Flame className="w-4 h-4" /> Recuperação Fisiológica dos Músculos
@@ -382,7 +343,6 @@ export function App() {
           </div>
         )}
 
-        {/* ABA PROGRESSO */}
         {activeTab === 'progresso' && (
           <div className="space-y-4 animate-fadeIn">
             <h2 className="text-xl font-black text-white flex items-center gap-2">
@@ -400,7 +360,7 @@ export function App() {
         )}
       </main>
 
-      {/* SESSÃO ATIVA (COM TIMER TOTAL, TIMER DE DESCANSO E CHECK POR SÉRIE) */}
+      {/* SESSÃO ATIVA */}
       {activeSession && (
         <div className="fixed inset-0 bg-slate-950 z-50 flex flex-col p-4">
           <div className="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -418,7 +378,6 @@ export function App() {
             </div>
           </div>
 
-          {/* TIMER DE DESCANSO FLUTUANTE */}
           {isResting && (
             <div className="my-3 bg-lime-400 text-slate-950 p-3 rounded-2xl flex justify-between items-center shadow-lg animate-pulse">
               <div className="flex items-center gap-2">
@@ -438,12 +397,11 @@ export function App() {
               <div key={exIdx} className="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-white text-sm">{ex.name}</span>
-                  <span className="text-xs text-slate-400">{ex.sets} séries × {ex.reps}</span>
+                  <span className="text-xs text-slate-400">{ex.sets}s × {ex.reps}</span>
                 </div>
 
-                {/* SÉRIES INDIVIDUAIS COM CHECK E PESO */}
                 <div className="space-y-1.5 mt-2">
-                  {Array.from({ length: Number(ex.sets) || 4 }).map((_, setIdx) => {
+                  {Array.from({ length: Number(ex.sets) || 3 }).map((_, setIdx) => {
                     const key = `${exIdx}-${setIdx}`;
                     const isChecked = completedSets[key];
                     const currentWeight = setWeights[key] || '';
@@ -518,7 +476,7 @@ export function App() {
                 <div key={idx} className="bg-slate-950 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
                   <div>
                     <p className="font-bold text-sm text-white">{ex.name}</p>
-                    <p className="text-xs text-slate-400">{ex.sets} séries × {ex.reps}</p>
+                    <p className="text-xs text-slate-400">{ex.sets}s × {ex.reps}</p>
                   </div>
                   <button onClick={() => {
                     handleRemoveExercise(editingRoutine.id, idx);
@@ -531,32 +489,6 @@ export function App() {
                   </button>
                 </div>
               ))}
-            </div>
-
-            <div className="border-t border-slate-800 pt-3 space-y-2">
-              <p className="text-xs text-lime-400 font-bold">Adicionar Novo Exercício:</p>
-              <input 
-                type="text" placeholder="Nome do exercício" 
-                value={newExName} onChange={e => setNewExName(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-sm text-white outline-none"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold">Séries</label>
-                  <input type="number" value={newExSets} onChange={e => setNewExSets(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-sm text-white outline-none" />
-                </div>
-                <div>
-                  <label className="text-[10px] text-slate-400 font-bold">Repetições</label>
-                  <input type="text" value={newExReps} onChange={e => setNewExReps(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-sm text-white outline-none" />
-                </div>
-              </div>
-              <button onClick={() => {
-                handleAddExerciseToRoutine(editingRoutine.id);
-                const updatedRoutine = routines.find(r => r.id === editingRoutine.id);
-                if(updatedRoutine) setEditingRoutine({...updatedRoutine});
-              }} className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-lime-400 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-700">
-                <Plus className="w-4 h-4" /> ADICIONAR NA FICHA
-              </button>
             </div>
 
             <button onClick={() => setEditingRoutine(null)} className="w-full bg-lime-400 text-slate-950 font-black py-3 rounded-xl text-sm">
@@ -572,9 +504,9 @@ export function App() {
           <Dumbbell className="w-5 h-5" />
           <span className="text-[10px] font-bold">Treinos</span>
         </button>
-        <button onClick={() => setActiveTab('gerador')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'gerador' ? 'text-lime-400' : 'text-slate-500'}`}>
-          <Wand2 className="w-5 h-5" />
-          <span className="text-[10px] font-bold">Criador Pro</span>
+        <button onClick={() => setActiveTab('modelos')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'modelos' ? 'text-lime-400' : 'text-slate-500'}`}>
+          <Compass className="w-5 h-5" />
+          <span className="text-[10px] font-bold">Modelos</span>
         </button>
         <button onClick={() => setActiveTab('historico')} className={`flex flex-col items-center gap-1 transition ${activeTab === 'historico' ? 'text-lime-400' : 'text-slate-500'}`}>
           <CalendarIcon className="w-5 h-5" />
